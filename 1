@@ -1,0 +1,176 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Book
+{
+    public string Title { get; set; }
+    public string Author { get; set; }
+    public string ISBN { get; set; }
+    public bool IsAvailable { get; set; } = true;
+
+    public Book(string title, string author, string isbn)
+    {
+        Title = title;
+        Author = author;
+        ISBN = isbn;
+    }
+
+    public override string ToString()
+    {
+        return $"{Title} by {Author} (ISBN: {ISBN}) - {(IsAvailable ? "Available" : "Rented")}";
+    }
+}
+
+class Reader
+{
+    public string Name { get; set; }
+    public List<Book> BorrowedBooks { get; set; } = new List<Book>();
+    public int MaxBorrowLimit { get; set; }
+
+    public Reader(string name, int maxBorrowLimit = 3)
+    {
+        Name = name;
+        MaxBorrowLimit = maxBorrowLimit;
+    }
+
+    public void BorrowBook(Book book)
+    {
+        if (BorrowedBooks.Count >= MaxBorrowLimit)
+        {
+            Console.WriteLine($"{Name} cannot borrow more than {MaxBorrowLimit} books at a time.");
+            return;
+        }
+
+        if (book.IsAvailable)
+        {
+            BorrowedBooks.Add(book);
+            book.IsAvailable = false;
+            Console.WriteLine($"{Name} successfully borrowed \"{book.Title}\".");
+        }
+        else
+        {
+            Console.WriteLine($"The book \"{book.Title}\" is not available.");
+        }
+    }
+
+    public void ReturnBook(Book book)
+    {
+        if (BorrowedBooks.Contains(book))
+        {
+            BorrowedBooks.Remove(book);
+            book.IsAvailable = true;
+            Console.WriteLine($"{Name} successfully returned \"{book.Title}\".");
+        }
+        else
+        {
+            Console.WriteLine($"\"{book.Title}\" is not in {Name}'s borrowed list.");
+        }
+    }
+}
+
+class Librarian
+{
+    public string Name { get; set; }
+
+    public Librarian(string name)
+    {
+        Name = name;
+    }
+
+    public void AddBook(Library library, Book book)
+    {
+        library.Books.Add(book);
+        Console.WriteLine($"Librarian {Name} added \"{book.Title}\" to the library.");
+    }
+
+    public void RemoveBook(Library library, Book book)
+    {
+        if (library.Books.Contains(book) && book.IsAvailable)
+        {
+            library.Books.Remove(book);
+            Console.WriteLine($"Librarian {Name} removed \"{book.Title}\" from the library.");
+        }
+        else
+        {
+            Console.WriteLine($"\"{book.Title}\" cannot be removed. It might be rented or not found.");
+        }
+    }
+}
+
+class Library
+{
+    public List<Book> Books { get; set; } = new List<Book>();
+
+    public void DisplayAvailableBooks()
+    {
+        Console.WriteLine("Available books in the library:");
+        foreach (var book in Books.Where(b => b.IsAvailable))
+        {
+            Console.WriteLine(book);
+        }
+    }
+
+    public void DisplayAllBooks()
+    {
+        Console.WriteLine("All books in the library:");
+        foreach (var book in Books)
+        {
+            Console.WriteLine(book);
+        }
+    }
+
+    public void SearchBooks(string query)
+    {
+        Console.WriteLine($"Search results for \"{query}\":");
+        var results = Books.Where(b => b.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                                        b.Author.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (results.Count > 0)
+        {
+            foreach (var book in results)
+            {
+                Console.WriteLine(book);
+            }
+        }
+        else
+        {
+            Console.WriteLine("No books found.");
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var library = new Library();
+        var librarian = new Librarian("Anna");
+        var reader = new Reader("John", maxBorrowLimit: 2); // Установлено ограничение на 2 книги
+
+        var book1 = new Book("1984", "George Orwell", "123456789");
+        var book2 = new Book("To Kill a Mockingbird", "Harper Lee", "987654321");
+        var book3 = new Book("The Great Gatsby", "F. Scott Fitzgerald", "123123123");
+
+        // Управление книгами библиотекарем
+        librarian.AddBook(library, book1);
+        librarian.AddBook(library, book2);
+        librarian.AddBook(library, book3);
+
+        library.DisplayAvailableBooks();
+
+        reader.BorrowBook(book1);
+        reader.BorrowBook(book2);
+        reader.BorrowBook(book3); // Превышение лимита
+
+        library.DisplayAvailableBooks();
+
+        library.SearchBooks("1984");
+        library.SearchBooks("Harper");
+
+        library.DisplayAllBooks();
+
+        reader.ReturnBook(book1);
+        library.DisplayAvailableBooks();
+    }
+}
