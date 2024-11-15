@@ -1,0 +1,217 @@
+using System;
+using System.Collections.Generic;
+
+class Hotel
+{
+    public string Name { get; set; }
+    public string Location { get; set; }
+    public List<string> RoomTypes { get; set; }
+    public int Price { get; set; }
+
+    public Hotel(string name, string location, List<string> roomTypes, int price)
+    {
+        Name = name;
+        Location = location;
+        RoomTypes = roomTypes;
+        Price = price;
+    }
+
+    public override string ToString()
+    {
+        return $"{Name} in {Location} - Rooms: {string.Join(", ", RoomTypes)} - Starting at ${Price}";
+    }
+}
+
+class Booking
+{
+    public string HotelName { get; set; }
+    public string RoomType { get; set; }
+    public string Dates { get; set; }
+
+    public Booking(string hotelName, string roomType, string dates)
+    {
+        HotelName = hotelName;
+        RoomType = roomType;
+        Dates = dates;
+    }
+
+    public override string ToString()
+    {
+        return $"{HotelName} - {RoomType} - {Dates}";
+    }
+}
+
+class HotelService
+{
+    private static List<Hotel> Hotels = new List<Hotel>
+    {
+        new Hotel("Grand Hotel", "New York", new List<string> { "Single", "Double" }, 100),
+        new Hotel("Beach Resort", "Miami", new List<string> { "Suite", "Double" }, 200)
+    };
+
+    public static List<Hotel> SearchHotels(string location)
+    {
+        return Hotels.FindAll(h => h.Location == location);
+    }
+}
+
+class BookingService
+{
+    private static List<Booking> Bookings = new List<Booking>();
+
+    public static bool BookRoom(string hotelName, string roomType, string dates)
+    {
+        var hotel = HotelService.SearchHotels(hotelName);
+        if (hotel == null)
+            return false;
+
+        Bookings.Add(new Booking(hotelName, roomType, dates));
+        return true;
+    }
+
+    public static List<Booking> GetBookings()
+    {
+        return Bookings;
+    }
+}
+
+class PaymentService
+{
+    public static bool ProcessPayment(string method, double amount)
+    {
+        Console.WriteLine($"Processing {method} payment of ${amount}...");
+        return true; // Simulating successful payment
+    }
+}
+
+class NotificationService
+{
+    public static void SendBookingConfirmation()
+    {
+        Console.WriteLine("Booking confirmation sent to your email!");
+    }
+
+    public static void SendPaymentConfirmation()
+    {
+        Console.WriteLine("Payment confirmation sent to your email!");
+    }
+}
+
+class UserManagementService
+{
+    private static Dictionary<string, string> Users = new Dictionary<string, string>();
+
+    public static bool Register(string username, string password)
+    {
+        if (Users.ContainsKey(username))
+            return false;
+
+        Users.Add(username, password);
+        return true;
+    }
+
+    public static bool Login(string username, string password)
+    {
+        return Users.ContainsKey(username) && Users[username] == password;
+    }
+}
+
+class UI
+{
+    public void Start()
+    {
+        Console.WriteLine("Welcome to Hotel Booking System!");
+        while (true)
+        {
+            Console.WriteLine("\n1. Search Hotels");
+            Console.WriteLine("2. Book a Room");
+            Console.WriteLine("3. View My Bookings");
+            Console.WriteLine("4. Exit");
+
+            var choice = Console.ReadLine();
+            switch (choice)
+            {
+                case "1":
+                    SearchHotels();
+                    break;
+                case "2":
+                    BookRoom();
+                    break;
+                case "3":
+                    ViewBookings();
+                    break;
+                case "4":
+                    Console.WriteLine("Thank you for using the system!");
+                    return;
+                default:
+                    Console.WriteLine("Invalid option.");
+                    break;
+            }
+        }
+    }
+
+    private void SearchHotels()
+    {
+        Console.WriteLine("Enter location:");
+        var location = Console.ReadLine();
+        var hotels = HotelService.SearchHotels(location);
+        if (hotels.Count > 0)
+        {
+            Console.WriteLine("\nAvailable hotels:");
+            foreach (var hotel in hotels)
+            {
+                Console.WriteLine(hotel);
+            }
+        }
+        else
+        {
+            Console.WriteLine("No hotels found in the specified location.");
+        }
+    }
+
+    private void BookRoom()
+    {
+        Console.WriteLine("Enter hotel name:");
+        var hotelName = Console.ReadLine();
+        Console.WriteLine("Enter room type:");
+        var roomType = Console.ReadLine();
+        Console.WriteLine("Enter dates (YYYY-MM-DD to YYYY-MM-DD):");
+        var dates = Console.ReadLine();
+
+        if (BookingService.BookRoom(hotelName, roomType, dates))
+        {
+            NotificationService.SendBookingConfirmation();
+            Console.WriteLine("Booking successful!");
+        }
+        else
+        {
+            Console.WriteLine("Booking failed. Hotel or room type might not exist.");
+        }
+    }
+
+    private void ViewBookings()
+    {
+        var bookings = BookingService.GetBookings();
+        if (bookings.Count > 0)
+        {
+            Console.WriteLine("\nYour bookings:");
+            foreach (var booking in bookings)
+            {
+                Console.WriteLine(booking);
+            }
+        }
+        else
+        {
+            Console.WriteLine("No bookings found.");
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var ui = new UI();
+        ui.Start();
+    }
+}
